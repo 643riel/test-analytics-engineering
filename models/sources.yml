@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: bank_marketing
+    database: bank-marketing-project-448216
+    schema: bank_marketing
+    tables:
+      - name: raw_bank_marketing

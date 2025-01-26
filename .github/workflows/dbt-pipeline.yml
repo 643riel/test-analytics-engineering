@@ -1,0 +1,84 @@
+name: DBT CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install DBT and dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core dbt-bigquery
+
+      - name: Install DBT dependencies
+        run: |
+          dbt deps
+
+      - name: Create keyfile from GCP secret
+        run: |
+          # Crear un archivo JSON con el secreto de la clave de la cuenta de servicio
+          echo '{
+            "type": "service_account",
+            "project_id": "bank-marketing-project-448216",
+            "private_key_id": "770a794523f24a6f50a1fbd5bd388a60c1c1a29b",
+            "private_key": "${{ secrets.GCP_PRIVATE_KEY }}",
+            "client_email": "dbt-access@bank-marketing-project-448216.iam.gserviceaccount.com",
+            "client_id": "107892419841772315969",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+            "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dbt-access%40bank-marketing-project-448216.iam.gserviceaccount.com",
+            "universe_domain": "googleapis.com"
+          }' > $HOME/gcp-keyfile.json
+
+      - name: Verify keyfile.json content
+        run: |
+          cat $HOME/gcp-keyfile.json
+
+      - name: Create profiles.yml with correct configuration
+        run: |
+          mkdir -p ~/.dbt
+          cat <<EOT > ~/.dbt/profiles.yml
+          default:
+            outputs:
+              default:
+                type: bigquery
+                method: service-account
+                project: bank-marketing-project-448216
+                dataset: dbt_gabriel
+                keyfile: "$HOME/gcp-keyfile.json"
+                threads: 4
+            target: default
+          EOT
+
+      - name: Debug profiles.yml
+        run: |
+          cat ~/.dbt/profiles.yml
+
+      - name: Run DBT models
+        run: |
+          dbt run --profiles-dir /home/runner/.dbt --target default
+
+      - name: Run DBT tests
+        run: |
+          dbt test --profiles-dir /home/runner/.dbt --target default
+
+      - name: Generate DBT docs
+        run: |
+          dbt docs generate --profiles-dir /home/runner/.dbt --target default

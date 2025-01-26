@@ -65,4 +65,76 @@ El objetivo es evaluar el dominio de la herramienta DBT (Data Build Tool) del ca
 
 ¡Suerte a todos! 
 
----
+------------------------------------------------------------
+# Bank Marketing Analysis Project
+
+## Descripción
+Este proyecto tiene como objetivo analizar los datos de una campaña de marketing bancario utilizando modelos de DBT (Data Build Tool). Se realizan tareas de limpieza, normalización y cálculo de indicadores clave de rendimiento (KPIs) para evaluar la efectividad de la campaña.
+
+## Estructura del Proyecto
+
+### Modelos
+
+#### 1. **staging_bank_marketing**
+Modelo de staging encargado de:
+- Limpiar y normalizar los datos provenientes del dataset.
+- Generar nuevas columnas calculadas, como:
+  - **job_normalized, marital_normalized, education_normalized**: Valores categóricos normalizados a minúsculas.
+  - **has_default, has_housing, has_loan**: Indicadores booleanos con valores desconocidos reemplazados por `NULL`.
+  - **last_contact_date**: Fecha ficticia unificada basada en los campos `month` y `day_of_week`.
+  - **age_group**: Segmentación por grupos de edad.
+  - **has_previous_contact**: Indica si el cliente tuvo contactos previos en la campaña.
+  - **contact_duration_minutes**: Duración del contacto convertida a minutos.
+  - **contact_frequency**: Categoriza la frecuencia de contacto en "single", "few" o "frequent".
+  - **previous_campaign_success**: Indicador booleano del éxito en la campaña previa.
+
+#### 2. **kpi_bank_marketing**
+Modelo de análisis que calcula KPIs de la campaña. Realiza:
+- Resumen general de la campaña (contactos totales, exitosos y tasa de conversión).
+- Resúmenes segmentados por:
+  - Grupo de edad.
+  - Ocupación.
+- Combina los resultados en una tabla unificada.
+
+### Esquema de Pruebas (schema.yml)
+Se definen pruebas para validar la calidad de los datos en cada modelo:
+- **staging_bank_marketing**:
+  - Pruebas de unicidad y no nulos para `client_id`.
+  - Validación de rangos en columnas como `age` y `contact_duration_minutes`.
+  - Aceptación de valores permitidos en campos categóricos como `has_default`, `age_group`, `contact_frequency`, entre otros.
+- **kpi_bank_marketing**:
+  - Validación de no nulos en métricas clave como `total_contacts`, `successful_contacts` y `conversion_rate_percentage`.
+
+### Dataset
+El dataset utilizado contiene información sobre campañas de marketing telefónico realizadas por una institución bancaria. Incluye campos como:
+- Datos demográficos: edad, ocupación, estado civil, nivel educativo.
+- Información financiera: si tiene créditos hipotecarios, personales o en default.
+- Resultados de campañas anteriores: duración del contacto, frecuencia, y éxito previo.
+
+### Requisitos
+- **DBT**: Herramienta para modelado de datos.
+- **Macros personalizadas**: Pruebas como `between` y `positive_value` están implementadas con macros adicionales.
+- **Dataset fuente**: `bank-additional-full.csv`.
+
+### Cómo Usar el Proyecto
+1. Clonar el repositorio:
+   ```bash
+   git clone <url-del-repositorio>
+   ```
+
+2. Configurar las conexiones a la base de datos en el archivo `profiles.yml` de DBT.
+
+3. Ejecutar los modelos:
+```bash
+dbt run
+```
+
+4. Validar los datos con las pruebas definidas:
+```bash
+dbt test
+```
+
+## Consideraciones
+El campo last_contact_date es ficticio y solo se utiliza para ejercicios prácticos.
+La segmentación por edad asigna "unknown" a valores fuera de los rangos especificados.
+Algunos campos categóricos reemplazan valores "unknown" por NULL para mejor manejo de datos.

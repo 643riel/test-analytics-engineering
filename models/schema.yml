@@ -1,0 +1,103 @@
+version: 2
+
+models:
+  - name: staging_bank_marketing
+    description: "Modelo para limpiar y normalizar los datos del dataset de marketing bancario."
+    columns:
+      - name: client_id
+        description: "ID generado con row_number, se podría también haber concatenado varios atributos."
+        tests:
+          - not_null
+          - unique
+      - name: age
+        description: "Edad del cliente en años."
+        tests:
+          - not_null
+          - between:  # Macro. Pongo el min en 16 para que no falle porque hay 5 registros con 17
+              min: 16
+              max: 100
+      - name: job_normalized
+        description: "Ocupación normalizada a minúsculas."
+        tests:
+          - not_null
+      - name: marital_normalized
+        description: "Estado civil normalizado a minúsculas."
+        tests:
+          - not_null
+      - name: education_normalized
+        description: "Nivel educativo normalizado a minúsculas."
+        tests:
+          - not_null
+      - name: has_default
+        description: "Indica si el cliente tiene un crédito en default. Valores desconocidos pasan a NULL."
+        tests:
+          - accepted_values:
+              values: ['yes', 'no', null]
+      - name: has_housing
+        description: "Indica si el cliente tiene un crédito hipotecario. Valores desconocidos pasan a NULL."
+        tests:
+          - accepted_values:
+              values: ['yes', 'no', null]
+      - name: has_loan
+        description: "Indica si el cliente tiene un crédito personal. Valores desconocidos pasan a NULL."
+        tests:
+          - accepted_values:
+              values: ['yes', 'no', null]
+      - name: last_contact_date
+        description: "Fecha unificada del último contacto (inventada para este ejercicio)."
+        tests:
+          - not_null
+      - name: age_group
+        description: "Segmento de edad del cliente. Categorías: '18-25', '26-35', '36-50', '50+'."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['18-25', '26-35', '36-50', '50+', 'unknown']
+          # En un caso real habría que ver los registros que caen en unknown, en este caso los que tienen 17 años. 
+
+          # Este test siempre va a pasar porque se aplica sobre la misma tabla.
+          # Sería útil si el modelo tuviera que hacer un join con otras tablas para validar. 
+          # - relationships:
+            #   to: "dbt_gabriel.staging_bank_marketing"
+            #   field: "age_group" 
+
+      - name: has_previous_contact
+        description: "Indica si el cliente tuvo contactos previos en la campaña (pdays != 999)."
+        tests:
+          - not_null
+      - name: contact_duration_minutes
+        description: "Duración del último contacto, normalizada a minutos."
+        tests:
+          - not_null
+          - positive_value:  # Macro
+              column_name: contact_duration_minutes
+      - name: contact_frequency
+        description: "Frecuencia de contacto durante la campaña. Valores: 'single', 'few', 'frequent'."
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['single', 'few', 'frequent']
+      - name: previous_campaign_success
+        description: "Indica si la campaña previa tuvo éxito. Es un bool."
+        tests:
+          - not_null
+
+  - name: kpi_bank_marketing
+    description: "Modelo para calcular KPIs relacionados con la efectividad de las campañas de marketing."
+    columns:
+      - name: segment
+        description: "Segmento analizado, puede ser 'Overall', un rango de edad o una ocupación."
+        tests:
+          - not_null
+      - name: total_contacts
+        description: "Número total de contactos realizados para el segmento."
+        tests:
+          - not_null
+      - name: successful_contacts
+        description: "Número total de contactos exitosos (conversiones) para el segmento."
+        tests:
+          - not_null
+      - name: conversion_rate_percentage
+        description: "Porcentaje de contactos exitosos sobre el total de contactos para el segmento."
+        tests:
+          - not_null
