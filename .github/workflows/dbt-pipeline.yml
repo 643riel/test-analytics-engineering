@@ -47,6 +47,10 @@ jobs:
             "universe_domain": "googleapis.com"
           }' > $HOME/gcp-keyfile.json
 
+      - name: Authenticate with GCP
+        run: |
+          gcloud auth activate-service-account --key-file=$HOME/gcp-keyfile.json
+
       - name: Verify keyfile.json content
         run: |
           cat $HOME/gcp-keyfile.json
