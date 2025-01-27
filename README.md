@@ -113,8 +113,8 @@ El dataset utilizado contiene información sobre campañas de marketing telefón
 
 ### Requisitos
 - **DBT**: Herramienta para modelado de datos.
-- **Macros personalizadas**: Pruebas como `between` y `positive_value` están implementadas con macros adicionales.
-- **Dataset fuente**: `bank-additional-full.csv`.
+- **Macros personalizadas**: Pruebas como `between` y `positive_value` están implementadas con macros adicionales en el código.
+- **Dataset fuente**: `bank-additional-full.csv` cargado en GCP.
 
 ### Cómo Usar el Proyecto
 1. Clonar el repositorio:
@@ -129,12 +129,17 @@ El dataset utilizado contiene información sobre campañas de marketing telefón
 dbt run
 ```
 
-4. Validar los datos con las pruebas definidas:
+4. Para validar los datos con los test definidos:
 ```bash
 dbt test
 ```
 
 ## Consideraciones
-El campo last_contact_date es ficticio y solo se utiliza para ejercicios prácticos.
-La segmentación por edad asigna "unknown" a valores fuera de los rangos especificados.
-Algunos campos categóricos reemplazan valores "unknown" por NULL para mejor manejo de datos.
+- El campo last_contact_date es ficticio y solo se utiliza para para este caso práctico. En un caso real, habría que buscar una mejor solución. 
+- La segmentación por edad asigna "unknown" a valores fuera de los rangos especificados (hay algunos registros con edad de 17)
+- Algunos campos categóricos reemplazan valores "unknown" por NULL para un mejor manejo de los datos.
+
+------------------------------------------------------------
+
+Se adjunta un archivo PDF con capturas de pantalla que documentan los pasos realizados y el ejercicio ejecutándose. 
+No se utilizó el servidor de DBT para esta documentación porque la consigna no lo requería. 
